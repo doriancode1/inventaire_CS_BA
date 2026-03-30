@@ -1,0 +1,984 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="SDIS 42 — Check">
+<meta name="theme-color" content="#8B0E0E">
+<title>SDIS 42 — Check de garde | CIS Bourg-Argental</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@700;800&family=Barlow:wght@400;600&display=swap');
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+:root{
+  --rouge:#CC2020;--rouge-f:#8B0E0E;
+  --orange:#D97820;--vert:#2A7B35;--bleu:#1458A8;
+  --ok:#16A34A;--ok-light:#F0FFF4;
+  --bg:#F2F2F2;--card:#FFFFFF;
+  --radius:12px;
+}
+html,body{height:100%;overflow:hidden}
+body{font-family:'Barlow',sans-serif;background:var(--bg);display:flex;flex-direction:column}
+
+/* ── HEADER ── */
+.header{
+  background:var(--rouge-f);color:white;
+  padding:env(safe-area-inset-top,0px) 16px 0;
+  flex-shrink:0;box-shadow:0 2px 10px rgba(0,0,0,0.3)
+}
+.header-top{
+  display:flex;align-items:center;gap:10px;
+  padding-bottom:10px;padding-top:14px
+}
+.header-logo{
+  font-family:'Barlow Condensed',sans-serif;font-size:18px;font-weight:800;
+  background:white;color:var(--rouge-f);padding:3px 7px;border-radius:6px;flex-shrink:0
+}
+.header-title{font-family:'Barlow Condensed',sans-serif;font-size:16px;font-weight:700;letter-spacing:0.5px;line-height:1.2;flex:1}
+.header-title small{display:block;font-size:11px;font-weight:400;opacity:0.8}
+.header-link{color:white;opacity:0.7;font-size:11px;text-decoration:none;flex-shrink:0;padding:4px 8px;background:rgba(255,255,255,0.15);border-radius:6px}
+
+/* ── PROGRESS ── */
+.progress-wrap{padding:0 0 10px}
+.progress-bar{height:6px;background:rgba(255,255,255,0.25);border-radius:3px;overflow:hidden;margin-bottom:5px}
+.progress-fill{height:100%;background:white;border-radius:3px;transition:width 0.35s ease;width:0%}
+.progress-label{font-size:11px;opacity:0.85;display:flex;justify-content:space-between}
+.progress-pct{font-weight:700}
+
+/* ── TABS ── */
+.tabs{display:flex;gap:0;background:rgba(0,0,0,0.2);border-radius:8px 8px 0 0;overflow-x:auto;margin-top:2px}
+.tab{flex-shrink:0;padding:8px 12px;text-align:center;font-family:'Barlow Condensed',sans-serif;font-size:12px;font-weight:700;color:rgba(255,255,255,0.65);cursor:pointer;border:none;background:none;transition:all 0.2s;white-space:nowrap}
+.tab.active{background:var(--bg);color:var(--rouge-f);border-radius:8px 8px 0 0}
+
+/* ── CONTENT ── */
+.content{flex:1;overflow-y:auto;padding:12px 12px 100px;-webkit-overflow-scrolling:touch}
+
+/* ── SECTION ── */
+.section-card{background:var(--card);border-radius:var(--radius);margin-bottom:10px;overflow:hidden;box-shadow:0 1px 4px rgba(0,0,0,0.08)}
+.section-header{display:flex;align-items:center;justify-content:space-between;padding:11px 14px;cursor:pointer;user-select:none}
+.section-header:active{opacity:0.85}
+.section-left{display:flex;align-items:center;gap:8px}
+.section-icon{width:8px;height:8px;border-radius:50%;background:rgba(255,255,255,0.5);flex-shrink:0}
+.section-title{font-family:'Barlow Condensed',sans-serif;font-size:15px;font-weight:700;color:white;letter-spacing:0.4px;text-transform:uppercase}
+.section-pill{background:rgba(255,255,255,0.2);color:white;font-size:11px;font-weight:700;padding:2px 9px;border-radius:20px;font-family:'Barlow Condensed',sans-serif;white-space:nowrap}
+.section-pill.done{background:rgba(255,255,255,0.4)}
+.chevron{color:rgba(255,255,255,0.6);font-size:12px;transition:transform 0.2s;flex-shrink:0;margin-left:4px}
+.section-card.collapsed .chevron{transform:rotate(-90deg)}
+.section-card.collapsed .items{display:none}
+.section-card.all-done .section-header{opacity:0.7}
+
+/* ── ITEMS ── */
+.items{border-top:1px solid rgba(0,0,0,0.06)}
+.item{display:flex;align-items:center;gap:12px;padding:11px 14px;border-bottom:1px solid #F3F3F3;cursor:pointer;transition:background 0.15s;-webkit-user-select:none;user-select:none}
+.item:last-child{border-bottom:none}
+.item:active{background:#F5F5F5}
+.item.checked{background:var(--ok-light)}
+.item.checked .item-name{color:#888;text-decoration:line-through;text-decoration-color:#AAA}
+.check-box{width:26px;height:26px;flex-shrink:0;border:2px solid #D0D0D0;border-radius:7px;display:flex;align-items:center;justify-content:center;transition:all 0.2s;font-size:15px;font-weight:700}
+.item.checked .check-box{background:var(--ok);border-color:var(--ok);color:white}
+.item-name{font-size:14px;flex:1;line-height:1.3;color:#1A1A1A}
+.item-qty{font-family:'Barlow Condensed',sans-serif;font-size:16px;font-weight:700;color:var(--rouge);min-width:22px;text-align:right}
+
+/* ── BOTTOM BAR ── */
+.bottom-bar{position:fixed;bottom:0;left:0;right:0;background:white;border-top:1px solid #E5E5E5;padding:10px 14px env(safe-area-inset-bottom,10px);display:flex;gap:10px;align-items:center;box-shadow:0 -4px 16px rgba(0,0,0,0.08);z-index:100}
+.btn-reset{background:#F0F0F0;color:#555;border:none;border-radius:10px;padding:12px 16px;font-family:'Barlow Condensed',sans-serif;font-size:14px;font-weight:700;cursor:pointer;flex-shrink:0}
+.btn-reset:active{background:#E0E0E0}
+.btn-validate{flex:1;background:var(--ok);color:white;border:none;border-radius:10px;padding:14px;font-family:'Barlow Condensed',sans-serif;font-size:16px;font-weight:800;cursor:pointer;letter-spacing:0.5px;box-shadow:0 2px 8px rgba(22,163,74,0.35)}
+.btn-validate:active{background:#15803D}
+
+/* ── MODAL RÉSULTAT ── */
+.result-modal{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.5);z-index:200;align-items:flex-end}
+.result-modal.open{display:flex}
+.result-sheet{background:white;width:100%;border-radius:20px 20px 0 0;padding:28px 20px env(safe-area-inset-bottom,24px);animation:slideUp 0.3s ease;max-height:85vh;overflow-y:auto}
+@keyframes slideUp{from{transform:translateY(100%)}to{transform:translateY(0)}}
+.result-icon{font-size:56px;text-align:center;margin-bottom:10px}
+.result-title{font-family:'Barlow Condensed',sans-serif;font-size:24px;font-weight:800;text-align:center;margin-bottom:6px;line-height:1.2}
+.result-title.ok{color:var(--ok)}
+.result-title.ko{color:var(--rouge)}
+.result-sub{font-size:12px;color:#888;text-align:center;margin-bottom:14px;line-height:1.6}
+.missing-list{background:#FFF3F3;border:1px solid #FFCCCC;border-radius:10px;padding:12px 14px;margin-bottom:14px;text-align:left}
+.miss-section{font-size:10px;font-weight:700;color:#999;text-transform:uppercase;letter-spacing:0.5px;margin-top:8px;margin-bottom:3px}
+.miss-section:first-child{margin-top:0}
+.miss-item{font-size:13px;color:#CC2020;padding:3px 0;border-bottom:1px dotted #FFCCCC;display:flex;align-items:center;gap:6px}
+.miss-item:last-child{border-bottom:none}
+.consigne-box{background:#FFF8E6;border:1px solid #FFD966;border-radius:10px;padding:12px 14px;margin-bottom:16px;font-size:13px;color:#7A5000;line-height:1.6}
+.result-time{text-align:center;font-size:11px;color:#AAA;margin-bottom:16px}
+.btn-close-result{width:100%;background:var(--rouge-f);color:white;border:none;border-radius:12px;padding:14px;font-family:'Barlow Condensed',sans-serif;font-size:16px;font-weight:800;cursor:pointer}
+.btn-close-result:active{background:var(--rouge)}
+
+/* ── EMPTY ── */
+.empty-state{text-align:center;padding:60px 24px;color:#AAA}
+.empty-state .es-icon{font-size:48px;margin-bottom:12px}
+.empty-state p{font-size:14px;line-height:1.6}
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div class="header-top">
+    <div class="header-logo">SDIS<span style="color:var(--rouge)">42</span></div>
+    <div class="header-title">
+      Check de garde
+      <small>CIS Bourg-Argental — Sapeurs-Pompiers</small>
+    </div>
+    <a href="https://doriancode1.github.io/inventaire-sdis42" class="header-link">🗺 Affiche</a>
+  </div>
+  <div class="progress-wrap">
+    <div class="progress-bar"><div class="progress-fill" id="prog-fill"></div></div>
+    <div class="progress-label">
+      <span id="prog-text">0 / 0 articles</span>
+      <span class="progress-pct" id="prog-pct">0%</span>
+    </div>
+  </div>
+  <div class="tabs" id="tabs"></div>
+</div>
+
+<div class="content" id="content"></div>
+
+<div class="bottom-bar">
+  <button class="btn-reset" onclick="resetCurrent()" title="Réinitialiser">↺ Reset</button>
+  <button class="btn-validate" onclick="validate()">✔ Valider la prise de garde</button>
+</div>
+
+<div class="result-modal" id="result-modal" onclick="handleModalClick(event)">
+  <div class="result-sheet" id="result-sheet">
+    <div class="result-icon" id="r-icon">✅</div>
+    <div class="result-title" id="r-title"></div>
+    <div class="result-sub" id="r-sub"></div>
+    <div id="r-missing" style="display:none" class="missing-list"></div>
+    <div id="r-consigne" style="display:none" class="consigne-box"></div>
+    <div class="result-time" id="r-time"></div>
+    <button class="btn-close-result" onclick="closeResult()">← Retour à l'inventaire</button>
+  </div>
+</div>
+
+<script>
+const defaultPages = [
+  /* ══════════════════════════════════════
+     PAGE ACCUEIL — sélecteur d'engin
+  ══════════════════════════════════════ */
+
+  /* ══ 1. VSAV 01 ══ */
+  {
+    nom: 'VSAV 01 — CIS BOURG-ARGENTAL',
+    gabarit: [
+      {k:'Type',v:'Renault'},{k:'Long.',v:'6.20 m'},
+      {k:'Larg.',v:'2.10 m'},{k:'Poids',v:'3.5 T'},
+      {k:'Pression pneus avants',v:'3.8 bars'},{k:'Pression pneus arrières',v:'3.8 bars'}
+    ],
+    cellules: [
+      {id:'boite_gants',titre:'Boîte à gants',couleur:'c-gris',ax:72,ay:75,
+       top:'auto',right:'0.5%',bottom:'10%',
+       items:[
+         {n:'Rubalise',q:1},{n:'Carte carburant',q:1},{n:'Clés triangle',q:2},
+         {n:'Polycoise',q:1},{n:'Coupe ceinture',q:1},{n:'Casse pare-brise',q:1}
+       ]},
+      {id:'coffre_ext',titre:'Coffre extérieur',couleur:'c-gris',ax:72,ay:42,
+       top:'30%',right:'0.5%',
+       items:[
+         {n:'Cônes de Lubeck',q:3},{n:'Cales véhicule',q:1},{n:'Casques F2',q:1},
+         {n:'Lot de bord',q:1},{n:'Triangle de signalisation',q:1},
+         {n:'Pack d\'eau',q:1},{n:'Chaussette/Chaîne à neige',q:1},
+         {n:'Commande',q:1},{n:'Bâche',q:1}
+       ]},
+      {id:'cellule_av',titre:'Cellule avant',couleur:'c-orange',ax:28,ay:35,
+       top:'2%',left:'0.5%',
+       items:[
+         {n:'GHV (dont 1 CDA)',q:4},{n:'Projecteurs',q:3},
+         {n:'Dossier administratif (fiches bilans / refus / carnets)',q:1}
+       ]},
+      {id:'cellule',titre:'Cellule',couleur:'c-bleu',ax:28,ay:62,
+       top:'38%',left:'0.5%',
+       items:[
+         {n:'Brancard',q:1},{n:'Portoir cuillère',q:1},{n:'Plan dur',q:1},
+         {n:'ACT',q:1},{n:'MID + pompe',q:1},{n:'Bouteilles O2',q:3},
+         {n:'AMS (+ 1 canule)',q:2},{n:'Poubelle standard + DASRI',q:2},
+         {n:'Container objets tranchants',q:1},{n:'Solution hydroalcoolique',q:1},
+         {n:'Boîtes de gants (M/L/XL)',q:3},
+         {n:'Attelle à dépression (avant-bras/bras/jambe) + pompe',q:3},
+         {n:'Chaise pliante',q:1},{n:'Couverture bactériostatique',q:1}
+       ]},
+      {id:'capucine',titre:'Capucine',couleur:'c-jaune',ax:52,ay:18,
+       top:'1%',left:'35%',
+       items:[
+         {n:'Portoir souple',q:1},
+         {n:'Attelles modulables (av-bras/bras/jambe enfant/jambe adulte)',q:4},
+         {n:'Peluche',q:1}
+       ]},
+      {id:'tiroir_cel_d',titre:'Tiroir cellule droit',couleur:'c-bleu',ax:52,ay:28,
+       top:'16%',left:'35%',
+       items:[
+         {n:'Draps à usage unique',q:4},{n:'Sangles de maintien',q:3},
+         {n:'Housse mortuaire',q:2},{n:'Sac papier "sous scellés"',q:1}
+       ]},
+      {id:'tiroir1',titre:'Tiroir 1',couleur:'c-bleu',ax:52,ay:42,
+       top:'30%',left:'35%',
+       items:[
+         {n:'Compresse',q:10},{n:'Vomix',q:2},
+         {n:'Bandes de fixation (3 petites/3 moyennes/3 grandes)',q:9},
+         {n:'Sparadrap (1 petit/1 grand)',q:2},{n:'Pansements assortis',q:1},
+         {n:'NaCl 45ml',q:2},{n:'NaCl 10ml',q:6}
+       ]},
+      {id:'tiroir2',titre:'Tiroir 2',couleur:'c-bleu',ax:52,ay:55,
+       top:'44%',left:'35%',
+       items:[
+         {n:'Ciseau à vêtements',q:1},{n:'Pansement absorbant',q:3},
+         {n:'Couverture isothermique',q:3},{n:'Écharpe triangulaire',q:2},
+         {n:'Champ stérile',q:2},{n:'CHU ou CHUT',q:2},
+         {n:'Garrot artériel tourniquet',q:2}
+       ]},
+      {id:'tiroir3',titre:'Tiroir 3',couleur:'c-bleu',ax:52,ay:67,
+       top:'57%',left:'35%',
+       items:[
+         {n:'Kit traitement des brûlures',q:1},{n:'Champ stérile',q:2},
+         {n:'Compresses Brulstop (3 petites/2 moyennes/1 grande)',q:6}
+       ]},
+      {id:'tiroir4',titre:'Tiroir 4',couleur:'c-bleu',ax:52,ay:80,
+       top:'69%',left:'35%',
+       items:[
+         {n:'Sacs DASRI + vêtements',q:1},{n:'Lingettes à usage unique',q:1},
+         {n:'Détergent désinfectant',q:1},{n:'Désodorisant',q:1}
+       ]},
+      {id:'tiroir_cel_g',titre:'Tiroir cellule gauche',couleur:'c-rouge',ax:28,ay:80,
+       top:'auto',left:'0.5%',bottom:'6%',
+       items:[
+         {n:'Twinpump + raccord',q:1},{n:'Recharge AMS + 1 canule',q:1},
+         {n:'Masques protection à visière panoramique',q:2},
+         {n:'BAVU Adulte (BAVU/canule AMS/3 Guedel/3 masques)',q:1},
+         {n:'Tuyaux O2',q:4},{n:'Raccord en Y',q:4},
+         {n:'Masques inhalation adulte',q:3},
+         {n:'Masques inhalation pédiatrique',q:2}
+       ]},
+      {id:'kits',titre:'Kits',couleur:'c-vert',ax:52,ay:90,
+       top:'auto',left:'35%',bottom:'2%',
+       items:[
+         {n:'Kit SINUS',q:1},{n:'Kit accouchement',q:1},{n:'Kit AES',q:1},
+         {n:'Kit COVID',q:2},{n:'Sangle araignée',q:1},{n:'Immo tête',q:1},
+         {n:'Kit section membres (CHU/poche isotherme/champs stériles/poches froid/NaCl)',q:1}
+       ]},
+      {id:'sac_ps',titre:'Sac prompt-secours',couleur:'c-orange',ax:72,ay:62,
+       top:'50%',right:'0.5%',
+       items:[
+         {n:'Sacs (DASRI/vêtements)',q:1},{n:'Gel hydroalcoolique + lot gants',q:1},
+         {n:'Sangle portage chaise pliante',q:1},{n:'Drap de glisse',q:1},
+         {n:'Collier cervical réglable adulte',q:2},
+         {n:'Collier cervical réglable pédiatrique',q:1},
+         {n:'Containers objets tranchants',q:1},
+         {n:'Masques (chirurgicaux/FFP2)',q:1},{n:'Vomix',q:4},
+         {n:'Écharpe triangulaire',q:2},
+         {n:'ETUI — Compresse',q:10},{n:'ETUI — NaCl (2×45mL/5×10mL)',q:7},
+         {n:'ETUI — Bandes fixation (3P/3M/3G)',q:9},
+         {n:'ETUI — Ciseau à vêtements',q:1},{n:'ETUI — Sparadrap (1P/1G)',q:2},
+         {n:'ETUI — Pansements assortis',q:1},
+         {n:'ETUI — CHU ou CHUT',q:2},{n:'ETUI — Garrot artériel tourniquet',q:1},
+         {n:'ETUI — QuickClot',q:1},{n:'ETUI — Kit pansement 3 côtés',q:1},
+         {n:'ETUI — Pansement absorbant',q:3},{n:'ETUI — Champ stérile',q:2},
+         {n:'ETUI — Poche de froid',q:2},{n:'ETUI — Couverture isothermique',q:2}
+       ]},
+      {id:'sac_o2',titre:'Sac O2',couleur:'c-rouge',ax:72,ay:80,
+       top:'auto',right:'0.5%',bottom:'5%',
+       items:[
+         {n:'Bouteille O2',q:1},
+         {n:'BAVU Pédiatrique (BAVU/canule AMS/3 Guedel/2 masques)',q:1},
+         {n:'BAVU Adulte (BAVU/canule AMS/3 Guedel/2 masques)',q:1},
+         {n:'Masques inhalation adulte',q:2},
+         {n:'Masques inhalation pédiatrique',q:1}
+       ]},
+      {id:'touch7',titre:'Touch 7',couleur:'c-rouge',ax:28,ay:90,
+       top:'auto',left:'0.5%',bottom:'2%',
+       items:[
+         {n:'Remplir carnet maintenance + Autotest',q:1},
+         {n:'Brassard tensiomètre',q:1},
+         {n:'Oxymètre de pouls (1 adulte/2 enfants)',q:3},
+         {n:'Electrode DSA adulte',q:1},{n:'Capteur pression ACR',q:1},
+         {n:'Câble ECG',q:1},{n:'Rasoir',q:1}
+       ]},
+      {id:'pochette_t7',titre:'Pochette Touch 7',couleur:'c-orange',ax:52,ay:90,
+       top:'auto',left:'35%',bottom:'2%',
+       items:[
+         {n:'Thermomètre + protection',q:1},{n:'Lampe à pupille',q:1},
+         {n:'Lecteur glycémie (autopiqueurs/électrodes/compresse/NaCl/pansements)',q:1},
+         {n:'Détecteur CO (vérifier expiration)',q:1},
+         {n:'Electrode ECG',q:2},{n:'Ciseau à vêtements',q:1},
+         {n:'Masques FFP2',q:3},{n:'Vomix',q:1},{n:'Compresses',q:2},
+         {n:'Brassard tensiométrique (1 enfant/1 XXL)',q:1}
+       ]}
+    ]
+  },
+
+    /* ══ 2. VSAV 02 ══ */
+  {
+    nom: 'VSAV 02 — CIS BOURG-ARGENTAL',
+    gabarit: [
+      {k:'Type',v:'Mercedes Sprinter'},{k:'Long.',v:'6.20 m'},
+      {k:'Larg.',v:'2.10 m'},{k:'Poids',v:'3.5 T'},
+      {k:'Places',v:'3'},{k:'O² emb.',v:'2 × 400 L'}
+    ],
+    cellules: [
+      {id:'tdb',titre:'Tableau de bord',couleur:'c-orange',ax:22,ay:28,
+       top:'2%',left:'0.5%',
+       items:[
+         {n:'Télépéage',q:1},{n:'Coupe-ceinture',q:1},{n:'Sangle',q:1},
+         {n:'Détecteur CO',q:1},{n:'Lampe torche',q:1},{n:'DFD',q:1},
+         {n:'Kit urgence vital',q:1},{n:'Fiche bilan vierge',q:'×'}
+       ]},
+      {id:'cab',titre:'Cabine avant',couleur:'c-rouge',ax:36,ay:28,
+       top:'2%',left:'17%',
+       items:[
+         {n:'2 GHV',q:2},{n:'Polycone',q:1},{n:'Clé triangle',q:1},
+         {n:'Carnet de bord',q:1},{n:'Plan de secteur',q:1}
+       ]},
+      {id:'cel',titre:'Cellule sanitaire',couleur:'c-bleu',ax:52,ay:35,
+       top:'2%',left:'34%',
+       items:[
+         {n:'Brancard principal',q:1},{n:'Brancard cuillère',q:1},
+         {n:'Chaise portoir',q:1},{n:'Plan dur',q:1},
+         {n:'Colliers cervicaux (jeu)',q:1},{n:'Couverture chauffante',q:2},
+         {n:'Drap à usage unique',q:4},{n:'Oreiller',q:1}
+       ]},
+      {id:'o2',titre:'Oxygénothérapie',couleur:'c-rouge',ax:72,ay:28,
+       top:'2%',right:'0.5%',
+       items:[
+         {n:'Bouteille O² 400L (emb.)',q:2},{n:'Bouteille O² 400L (rés.)',q:1},
+         {n:'Détendeur + débit.',q:2},{n:'Masque haute concentration',q:3},
+         {n:'Masque à réservoir',q:2},{n:'Lunettes O²',q:2},
+         {n:'Insufflateur (BAVU)',q:2},{n:'Canules de Guedel (jeu)',q:1}
+       ]},
+      {id:'dsa',titre:'Défibrillation',couleur:'c-rouge',ax:22,ay:62,
+       top:'32%',left:'0.5%',
+       items:[
+         {n:'DAE (défibrillateur)',q:1},{n:'Électrodes adulte',q:2},
+         {n:'Électrodes pédiatriques',q:1},{n:'Rasoir jetable',q:2},
+         {n:'Compresses sèches',q:6}
+       ]},
+      {id:'immob',titre:'Immobilisation',couleur:'c-vert',ax:38,ay:62,
+       top:'32%',left:'17%',
+       items:[
+         {n:'Attelles Kramer',q:4},{n:'Attelles pneumatiques',q:1},
+         {n:'Minerve adulte + péd.',q:1},{n:'KED (corset extr.)',q:1},
+         {n:'Matelas coquille',q:1}
+       ]},
+      {id:'pans',titre:'Pansements / Plaies',couleur:'c-vert',ax:54,ay:62,
+       top:'32%',left:'34%',
+       items:[
+         {n:'Compresses stériles 10×10',q:20},{n:'Bandes élastiques',q:6},
+         {n:'Pansements américains',q:4},{n:'Garrot tourniquet (CAT)',q:2},
+         {n:'Film plastique brûlures',q:2},{n:'Couverture de survie',q:3}
+       ]},
+      {id:'airway',titre:'Voies aériennes',couleur:'c-bleu',ax:22,ay:82,
+       top:'auto',left:'0.5%',bottom:'12%',
+       items:[
+         {n:'Aspirateur de mucosités',q:1},{n:'Sondes aspiration (jeu)',q:1},
+         {n:'Masques ventil. (jeu)',q:1},{n:'Tube pharyngé',q:2},
+         {n:'Pince de Magill',q:1}
+       ]},
+      {id:'portage',titre:'Portage / Divers',couleur:'c-gris',ax:54,ay:82,
+       top:'auto',left:'34%',bottom:'12%',
+       items:[
+         {n:'Alèse imperméable',q:2},{n:'Sac poubelle DASRI',q:5},
+         {n:'Gants d\'examen (boîte)',q:2},{n:'Masque chirurgical (boîte)',q:1},
+         {n:'Lunettes protection',q:2}
+       ]},
+      {id:'lot',titre:'Lot secours routier',couleur:'c-jaune',ax:72,ay:82,
+       top:'auto',right:'0.5%',bottom:'12%',
+       items:[
+         {n:'Extincteur 2kg CO²',q:1},{n:'Triangles signalisation',q:3},
+         {n:'Bâche de protection',q:1},{n:'Coussins de calage',q:2}
+       ]}
+    ]
+  },
+
+  /* ══ 3. FPTSR ══ */
+  {
+    nom: 'FPTSR — CIS BOURG-ARGENTAL',
+    gabarit: [
+      {k:'Type',v:'FPT Secours Routier'},{k:'Long.',v:'7.80 m'},
+      {k:'Larg.',v:'2.50 m'},{k:'Poids',v:'16 T'},
+      {k:'Réservoir',v:'2 000 L'},{k:'Pompe',v:'2 000 L/min'},
+      {k:'Mousse',v:'200 L'}
+    ],
+    cellules: [
+      {id:'tdb',titre:'Tableau de bord',couleur:'c-orange',ax:22,ay:28,
+       top:'2%',left:'0.5%',
+       items:[
+         {n:'Télépéage',q:1},{n:'Coupe-ceinture',q:1},{n:'Détecteur CO',q:1},
+         {n:'Clé gaz multifonction',q:1},{n:'2 Clés triangle',q:2},
+         {n:'2 GHV',q:2},{n:'DFD',q:1},{n:'Polycone',q:1}
+       ]},
+      {id:'cab',titre:'Cabine arrière',couleur:'c-rouge',ax:36,ay:32,
+       top:'2%',left:'17%',
+       items:[
+         {n:'4 ARI complets',q:4},{n:'4 Masques ARI',q:4},
+         {n:'4 Liaisons personnelles',q:4},{n:'Ligne guide',q:1},
+         {n:'Extincteur CO² 2kg',q:1},{n:'Rubalise',q:1}
+       ]},
+      {id:'toit',titre:'Toit',couleur:'c-gris',ax:52,ay:10,
+       top:'1%',left:'38%',
+       items:[
+         {n:'Échelle à coulisse 3P',q:1},{n:'Échelle 2P petit modèle',q:1},
+         {n:'Échelle à crochet',q:1},{n:'Dévidoir 25m',q:1},
+         {n:'Balai cantonnier',q:1},{n:'Pelle',q:1},{n:'Pioche',q:1}
+       ]},
+      {id:'dsr',titre:'Désincarcération',couleur:'c-rouge',ax:22,ay:62,
+       top:'30%',left:'0.5%',
+       items:[
+         {n:'Groupe hydraulique',q:1},{n:'Écarteur hydraulique',q:1},
+         {n:'Cisaille hydraulique',q:1},{n:'Vérin hydraulique',q:1},
+         {n:'Bélier hydraulique',q:1},{n:'Prolongateur 10m',q:2},
+         {n:'Coupe-boulon',q:1},{n:'Scie sabre',q:1}
+       ]},
+      {id:'calage',titre:'Calage / Stabilisation',couleur:'c-jaune',ax:38,ay:65,
+       top:'30%',left:'17%',
+       items:[
+         {n:'Step chock (jeu)',q:1},{n:'Cales bois (jeu)',q:8},
+         {n:'Sangles de calage',q:4},{n:'Coussins gonflables (jeu)',q:1},
+         {n:'Compresseur coussins',q:1}
+       ]},
+      {id:'cgh',titre:'Coffre gauche haut',couleur:'c-bleu',ax:22,ay:50,
+       top:'32%',left:'0.5%',
+       items:[
+         {n:'Tuyaux Ø70 (20m)',q:2},{n:'Division 65/2×45',q:1},
+         {n:'Lance LDV 500',q:1},{n:'Lance LDV 1000',q:1},
+         {n:'Collecteur alimentation',q:1},{n:'Vanne Ø110',q:1}
+       ]},
+      {id:'cgb',titre:'Coffre gauche bas',couleur:'c-bleu',ax:22,ay:75,
+       top:'auto',left:'0.5%',bottom:'13%',
+       items:[
+         {n:'6 Bouteilles ARI',q:6},{n:'Ventilateur',q:1},
+         {n:'2 FGI mousse foison',q:2},{n:'Lot absorbants',q:1},
+         {n:'Clé poteau incendie',q:1},{n:'Obturateurs (jeu)',q:1}
+       ]},
+      {id:'cdh',titre:'Coffre droit haut',couleur:'c-vert',ax:78,ay:38,
+       top:'3%',right:'0.5%',
+       items:[
+         {n:'Hache',q:1},{n:'Masse',q:1},{n:'Halligan Bar',q:1},
+         {n:'Pied de biche',q:1},{n:'Scie égoïne',q:1},
+         {n:'2 Projecteurs LED',q:2},{n:'Mât télescopique',q:1}
+       ]},
+      {id:'cdb',titre:'Coffre droit bas',couleur:'c-vert',ax:78,ay:72,
+       top:'auto',right:'0.5%',bottom:'13%',
+       items:[
+         {n:'Lot de protection victime',q:1},{n:'Bâche',q:2},
+         {n:'4 Cônes Lubeck',q:4},{n:'Lot signalisation',q:1},
+         {n:'Extincteur poudre 6kg',q:1},{n:'Caisse premiers secours',q:1}
+       ]},
+      {id:'arr',titre:'Coffre arrière',couleur:'c-orange',ax:65,ay:82,
+       top:'auto',right:'17%',bottom:'1%',
+       items:[
+         {n:'2 Dévidoirs 45',q:2},{n:'Tuyaux Ø45 (20m)',q:4},
+         {n:'Clé de barrage gaz',q:1},{n:'Lot mousse (LM)',q:1},
+         {n:'Mélangeur proportionneur',q:1}
+       ]}
+    ]
+  },
+
+  /* ══ 4. CCF ══ */
+  {
+    nom: 'CCF — CIS BOURG-ARGENTAL',
+    gabarit: [
+      {k:'Type',v:'Camion-Citerne Feux Forêt'},{k:'Long.',v:'6.50 m'},
+      {k:'Larg.',v:'2.30 m'},{k:'Poids',v:'12 T'},
+      {k:'Réservoir',v:'3 000 L'},{k:'Pompe',v:'500 L/min'},
+      {k:'Autonomie',v:'Hydraulique propre'}
+    ],
+    cellules: [
+      {id:'tdb',titre:'Tableau de bord',couleur:'c-orange',ax:22,ay:28,
+       top:'2%',left:'0.5%',
+       items:[
+         {n:'Télépéage',q:1},{n:'Coupe-ceinture',q:1},{n:'GPS',q:1},
+         {n:'Carte IGN secteur',q:1},{n:'Détecteur CO',q:1},
+         {n:'2 GHV',q:2},{n:'DFD',q:1}
+       ]},
+      {id:'cab',titre:'Cabine',couleur:'c-rouge',ax:36,ay:30,
+       top:'2%',left:'17%',
+       items:[
+         {n:'2 ARI complets',q:2},{n:'Cagoules feu (jeu)',q:4},
+         {n:'Gants feu (paires)',q:4},{n:'2 Talkies-walkies',q:2},
+         {n:'Lampes frontales',q:4}
+       ]},
+      {id:'toit',titre:'Toit',couleur:'c-gris',ax:52,ay:10,
+       top:'1%',left:'38%',
+       items:[
+         {n:'Dévidoir 45m plat',q:1},{n:'Lance canon toit',q:1},
+         {n:'Pelle ronde',q:2},{n:'Pioche-serpe',q:2},{n:'Râteau',q:1}
+       ]},
+      {id:'feux',titre:'Équip. feux forêt',couleur:'c-rouge',ax:22,ay:62,
+       top:'30%',left:'0.5%',
+       items:[
+         {n:'Tuyaux Ø45 (15m)',q:4},{n:'Tuyaux Ø25 (15m)',q:4},
+         {n:'Lance 45 réglable',q:2},{n:'Lance 25 pistolet',q:4},
+         {n:'Têtes d\'aspiration',q:2},{n:'Division 45/2×25',q:2},
+         {n:'Réducteur 45/25',q:2}
+       ]},
+      {id:'pompe',titre:'Groupe motopompe',couleur:'c-bleu',ax:52,ay:62,
+       top:'30%',left:'34%',
+       items:[
+         {n:'GMP remorquable',q:1},{n:'Fuel GMP (bidon)',q:1},
+         {n:'Crépine',q:1},{n:'Tuyaux aspiration (jeu)',q:1},
+         {n:'Outillage GMP',q:1}
+       ]},
+      {id:'def',titre:'Défense forêt',couleur:'c-vert',ax:72,ay:62,
+       top:'30%',right:'0.5%',
+       items:[
+         {n:'Débroussailleuse',q:1},{n:'Tronçonneuse',q:1},
+         {n:'Carburant mélange',q:2},{n:'EPI tronçonnage',q:1},
+         {n:'Éclateur thermique',q:1}
+       ]},
+      {id:'sec',titre:'Secours à personne',couleur:'c-orange',ax:22,ay:82,
+       top:'auto',left:'0.5%',bottom:'12%',
+       items:[
+         {n:'Caisse premiers secours',q:1},{n:'BAVU',q:1},
+         {n:'Bouteille O² 400L',q:1},{n:'DSA',q:1},
+         {n:'Couverture survie',q:2}
+       ]},
+      {id:'divers',titre:'Divers / Signalisation',couleur:'c-gris',ax:65,ay:82,
+       top:'auto',right:'0.5%',bottom:'12%',
+       items:[
+         {n:'Extincteur 6kg poudre',q:2},{n:'Cônes Lubeck',q:4},
+         {n:'Rubalise',q:1},{n:'Lot absorbants',q:1},
+         {n:'Hache forestière',q:2},{n:'Éclairage autonome',q:1}
+       ]}
+    ]
+  },
+
+  /* ══ 5. CCGC ══ */
+  {
+    nom: 'CCGC — CIS BOURG-ARGENTAL',
+    gabarit: [
+      {k:'Type',v:'Camion-Citerne Grande Capacité'},{k:'Long.',v:'9.50 m'},
+      {k:'Larg.',v:'2.55 m'},{k:'Poids',v:'26 T'},
+      {k:'Réservoir',v:'10 000 L'},{k:'Pompe',v:'3 000 L/min'},
+      {k:'Mousse',v:'500 L'}
+    ],
+    cellules: [
+      {id:'tdb',titre:'Tableau de bord',couleur:'c-orange',ax:22,ay:28,
+       top:'2%',left:'0.5%',
+       items:[
+         {n:'Télépéage',q:1},{n:'Coupe-ceinture',q:1},{n:'Détecteur CO',q:1},
+         {n:'Clé gaz multifonction',q:1},{n:'2 Clés triangle',q:2},
+         {n:'2 GHV',q:2},{n:'DFD',q:1},{n:'Polycone',q:1}
+       ]},
+      {id:'cab',titre:'Cabine arrière',couleur:'c-rouge',ax:36,ay:32,
+       top:'2%',left:'17%',
+       items:[
+         {n:'4 ARI complets',q:4},{n:'4 Masques ARI',q:4},
+         {n:'4 Liaisons personnelles',q:4},{n:'Ligne guide',q:1},
+         {n:'Extincteur CO² 2kg',q:1}
+       ]},
+      {id:'toit',titre:'Toit',couleur:'c-gris',ax:52,ay:10,
+       top:'1%',left:'38%',
+       items:[
+         {n:'Lance canon toit Ø70',q:1},{n:'Dévidoir 45m',q:1},
+         {n:'Échelle à coulisse 3P',q:1},{n:'Pelle',q:1},{n:'Pioche',q:1}
+       ]},
+      {id:'ali',titre:'Alimentation',couleur:'c-bleu',ax:22,ay:55,
+       top:'30%',left:'0.5%',
+       items:[
+         {n:'Tuyaux Ø110 (5m)',q:4},{n:'Collecteur Ø110',q:1},
+         {n:'Raccords Ø110/70',q:2},{n:'Clé barrage incendie',q:1},
+         {n:'Bâche souple 10 000L',q:1}
+       ]},
+      {id:'att',titre:'Attaque incendie',couleur:'c-rouge',ax:38,ay:55,
+       top:'30%',left:'17%',
+       items:[
+         {n:'Tuyaux Ø70 (20m)',q:4},{n:'Tuyaux Ø45 (20m)',q:6},
+         {n:'Lance LDV 1000',q:2},{n:'Lance LDV 500',q:2},
+         {n:'Division 70/2×45',q:2},{n:'Division 65/2×45',q:2}
+       ]},
+      {id:'mousse',titre:'Mousse / NRBC',couleur:'c-orange',ax:54,ay:55,
+       top:'30%',left:'34%',
+       items:[
+         {n:'2 FGI mousse foison',q:2},{n:'Mélangeur proportionneur',q:1},
+         {n:'Tuyaux mousse (jeu)',q:1},{n:'Lance mousse basse exp.',q:1},
+         {n:'EPI NRBC niveau 2',q:2}
+       ]},
+      {id:'log',titre:'Logistique eau',couleur:'c-bleu',ax:72,ay:55,
+       top:'30%',right:'0.5%',
+       items:[
+         {n:'2 Aspiraux Ø110',q:2},{n:'Crépine Ø110',q:1},
+         {n:'Seau pompe',q:1},{n:'Motopompe portable',q:1},
+         {n:'Clé barrage gaz',q:1}
+       ]},
+      {id:'sec',titre:'Secours / Divers',couleur:'c-vert',ax:22,ay:82,
+       top:'auto',left:'0.5%',bottom:'12%',
+       items:[
+         {n:'Caisse premiers secours',q:1},{n:'BAVU',q:1},
+         {n:'Bouteille O² 400L',q:1},{n:'DSA',q:1}
+       ]},
+      {id:'sign',titre:'Signalisation',couleur:'c-gris',ax:65,ay:82,
+       top:'auto',right:'0.5%',bottom:'12%',
+       items:[
+         {n:'Cônes Lubeck',q:6},{n:'Rubalise',q:1},
+         {n:'Lot absorbants',q:1},{n:'Extincteur poudre 9kg',q:1},
+         {n:'Projecteurs LED (jeu)',q:1}
+       ]}
+    ]
+  },
+
+  /* ══ 6. VTPM ══ */
+  {
+    nom: 'VTPM — CIS BOURG-ARGENTAL',
+    gabarit: [
+      {k:'Type',v:'Véhicule Transport Pers. Mat.'},{k:'Long.',v:'6.00 m'},
+      {k:'Larg.',v:'2.20 m'},{k:'Poids',v:'5 T'},
+      {k:'Places',v:'9'},{k:'Charge utile',v:'1 500 kg'}
+    ],
+    cellules: [
+      {id:'tdb',titre:'Tableau de bord',couleur:'c-orange',ax:22,ay:28,
+       top:'2%',left:'0.5%',
+       items:[
+         {n:'Télépéage',q:1},{n:'Coupe-ceinture',q:1},{n:'Détecteur CO',q:1},
+         {n:'Kit urgence vital',q:1},{n:'DFD',q:1},{n:'Lampe torche',q:1}
+       ]},
+      {id:'pers',titre:'Transport personnel',couleur:'c-bleu',ax:45,ay:30,
+       top:'2%',left:'25%',
+       items:[
+         {n:'Sièges passagers (banc)',q:8},{n:'Points d\'ancrage EPI',q:8},
+         {n:'Porte-équipements ARI',q:4},{n:'Extincteur 2kg',q:1}
+       ]},
+      {id:'mat',titre:'Espace matériel',couleur:'c-vert',ax:72,ay:30,
+       top:'2%',right:'0.5%',
+       items:[
+         {n:'Sangles arrimage (jeu)',q:6},{n:'Crochets de tirage',q:4},
+         {n:'Remorque légère (option)',q:1}
+       ]},
+      {id:'secours',titre:'Premiers secours',couleur:'c-rouge',ax:22,ay:65,
+       top:'35%',left:'0.5%',
+       items:[
+         {n:'Caisse premiers secours',q:1},{n:'BAVU adulte',q:1},
+         {n:'Bouteille O² 400L',q:1},{n:'DSA',q:1},
+         {n:'Couvertures de survie',q:4}
+       ]},
+      {id:'log',titre:'Logistique / Soutien',couleur:'c-gris',ax:65,ay:65,
+       top:'35%',right:'0.5%',
+       items:[
+         {n:'Groupe électrogène',q:1},{n:'Rallonge 25m',q:1},
+         {n:'Projecteurs (jeu)',q:2},{n:'Carburant (bidon 10L)',q:2},
+         {n:'Outillage général',q:1},{n:'Lot signalisation',q:1}
+       ]}
+    ]
+  },
+
+  /* ══ 7. VLHR ══ */
+  {
+    nom: 'VLHR — CIS BOURG-ARGENTAL',
+    gabarit: [
+      {k:'Type',v:'VL Hors Route'},{k:'Carburant',v:'Diesel'},
+      {k:'Places',v:'5'},{k:'Traction',v:'4×4'}
+    ],
+    cellules: [
+      {id:'tdb',titre:'Tableau de bord',couleur:'c-orange',ax:22,ay:28,
+       top:'2%',left:'0.5%',
+       items:[
+         {n:'Télépéage',q:1},{n:'Coupe-ceinture',q:1},{n:'Lampe torche',q:1},
+         {n:'GPS',q:1},{n:'Carte IGN',q:1},{n:'Kit urgence vital',q:1}
+       ]},
+      {id:'com',titre:'Commandement',couleur:'c-bleu',ax:45,ay:28,
+       top:'2%',left:'25%',
+       items:[
+         {n:'Talkie-walkie (jeu)',q:2},{n:'PC portable',q:1},
+         {n:'Plans secteurs (jeu)',q:1},{n:'Boussole',q:1},
+         {n:'Jumelles',q:1},{n:'Mégaphone',q:1}
+       ]},
+      {id:'sec',titre:'Premiers secours',couleur:'c-rouge',ax:72,ay:28,
+       top:'2%',right:'0.5%',
+       items:[
+         {n:'Caisse premiers secours',q:1},{n:'BAVU',q:1},
+         {n:'Bouteille O² 400L',q:1},{n:'DSA',q:1},
+         {n:'Couvertures de survie',q:2},{n:'Brancard souple',q:1}
+       ]},
+      {id:'rec',titre:'Reconnaissance',couleur:'c-vert',ax:22,ay:70,
+       top:'38%',left:'0.5%',
+       items:[
+         {n:'Détecteur CO/Gaz',q:1},{n:'Caméra thermique',q:1},
+         {n:'Drone (option)',q:1},{n:'Lampes frontales',q:4},
+         {n:'Cordes (50m)',q:2},{n:'Mousquetons',q:6}
+       ]},
+      {id:'ext',titre:'Extinction / Sécurité',couleur:'c-orange',ax:65,ay:70,
+       top:'38%',right:'0.5%',
+       items:[
+         {n:'Extincteur 6kg poudre',q:1},{n:'2 GHV',q:2},
+         {n:'ARI complet',q:1},{n:'Lot signalisation',q:1},
+         {n:'Câble remorquage',q:1},{n:'Sangle de tirage',q:1}
+       ]}
+    ]
+  },
+
+  /* ══ 8. VBSI ══ */
+  {
+    nom: 'VBSI — CIS BOURG-ARGENTAL',
+    gabarit: [
+      {k:'Type',v:'Véhicule Balisage Secours Inond.'},{k:'Long.',v:'5.50 m'},
+      {k:'Larg.',v:'2.10 m'},{k:'Poids',v:'4 T'},
+      {k:'Équip. spéc.',v:'Pompage / Balisage'}
+    ],
+    cellules: [
+      {id:'tdb',titre:'Tableau de bord',couleur:'c-orange',ax:22,ay:28,
+       top:'2%',left:'0.5%',
+       items:[
+         {n:'Télépéage',q:1},{n:'Coupe-ceinture',q:1},{n:'Détecteur CO',q:1},
+         {n:'2 GHV',q:2},{n:'Kit urgence vital',q:1},{n:'DFD',q:1}
+       ]},
+      {id:'pomp',titre:'Pompage',couleur:'c-bleu',ax:38,ay:30,
+       top:'2%',left:'17%',
+       items:[
+         {n:'Motopompe thermique',q:1},{n:'Pompe submersible élec.',q:1},
+         {n:'Tuyaux refoulement 45',q:4},{n:'Tuyaux aspiration',q:2},
+         {n:'Crépine',q:2},{n:'Rallonge élec. 25m',q:1},
+         {n:'Groupe électrogène',q:1}
+       ]},
+      {id:'inond',titre:'Inondation',couleur:'c-bleu',ax:60,ay:30,
+       top:'2%',left:'38%',
+       items:[
+         {n:'Sacs de sable',q:50},{n:'Batardeaux (jeu)',q:1},
+         {n:'Boudins absorbants (jeu)',q:1},{n:'Pompe à membrane',q:1},
+         {n:'Waders (cuissardes)',q:4},{n:'Gilets de sauvetage',q:4}
+       ]},
+      {id:'balis',titre:'Balisage',couleur:'c-jaune',ax:78,ay:30,
+       top:'2%',right:'0.5%',
+       items:[
+         {n:'Cônes Lubeck',q:10},{n:'Rubalise (100m)',q:4},
+         {n:'Barrières Vauban',q:6},{n:'Panneau signalisation',q:4},
+         {n:'Gyrophares magnétiques',q:2},{n:'Projecteurs LED',q:2}
+       ]},
+      {id:'sauv',titre:'Sauvetage aquatique',couleur:'c-vert',ax:22,ay:72,
+       top:'auto',left:'0.5%',bottom:'12%',
+       items:[
+         {n:'Bouée de sauvetage',q:2},{n:'Corde de sauvetage 30m',q:2},
+         {n:'Combinaison néoprène',q:2},{n:'Pagaie',q:2},
+         {n:'Barque gonflable',q:1}
+       ]},
+      {id:'sec',titre:'Secours à personne',couleur:'c-rouge',ax:52,ay:72,
+       top:'auto',left:'34%',bottom:'12%',
+       items:[
+         {n:'Caisse premiers secours',q:1},{n:'BAVU',q:1},
+         {n:'Bouteille O² 400L',q:1},{n:'DSA',q:1},
+         {n:'Couvertures de survie',q:3},{n:'Brancard souple',q:1}
+       ]},
+      {id:'divers',titre:'Outillage / Divers',couleur:'c-gris',ax:75,ay:72,
+       top:'auto',right:'0.5%',bottom:'12%',
+       items:[
+         {n:'Pelles',q:2},{n:'Pioche',q:1},{n:'Masse',q:1},
+         {n:'Scie égoïne',q:1},{n:'Outillage général',q:1},
+         {n:'Lot absorbants',q:1}
+       ]}
+    ]
+  }
+];
+
+
+const STORAGE_KEY = 'sdis42_checks_v2';
+let currentPageIdx = 0;
+let checks = loadChecks();
+
+/* Couleurs */
+const COLORS = {
+  'c-rouge':'#CC2020','c-orange':'#D97820','c-vert':'#2A7B35',
+  'c-bleu':'#1458A8','c-jaune':'#E8A000','c-gris':'#3C3C3C'
+};
+
+function loadChecks() {
+  try { return JSON.parse(localStorage.getItem(STORAGE_KEY) || '{}'); }
+  catch(e) { return {}; }
+}
+function saveChecks() {
+  try { localStorage.setItem(STORAGE_KEY, JSON.stringify(checks)); }
+  catch(e) {}
+}
+
+/* ── Init ── */
+function init() {
+  buildTabs();
+  renderPage(currentPageIdx);
+}
+
+function buildTabs() {
+  const tabs = document.getElementById('tabs');
+  tabs.innerHTML = '';
+  defaultPages.forEach((p, i) => {
+    const btn = document.createElement('button');
+    btn.className = 'tab' + (i === 0 ? ' active' : '');
+    btn.textContent = p.nom.split('—')[0].trim();
+    btn.onclick = () => switchTab(i);
+    tabs.appendChild(btn);
+  });
+}
+
+function switchTab(idx) {
+  currentPageIdx = idx;
+  document.querySelectorAll('.tab').forEach((t,i) => t.classList.toggle('active', i===idx));
+  renderPage(idx);
+  window.scrollTo(0,0);
+  document.getElementById('content').scrollTop = 0;
+}
+
+function renderPage(idx) {
+  const page = defaultPages[idx];
+  const pid  = 'p' + idx;
+  if (!checks[pid]) checks[pid] = {};
+  const content = document.getElementById('content');
+  content.innerHTML = '';
+
+  if (!page.cellules || page.cellules.length === 0) {
+    content.innerHTML = '<div class="empty-state"><div class="es-icon">📦</div><p>Aucun article dans cet inventaire.</p></div>';
+    updateProgress(idx); return;
+  }
+
+  page.cellules.forEach((cel, ci) => {
+    if (!cel.items || cel.items.length === 0) return;
+    const doneCount = cel.items.filter((_,ii) => checks[pid][cel.id+'_'+ii]).length;
+    const allDone   = doneCount === cel.items.length;
+    const color     = COLORS[cel.couleur] || '#CC2020';
+
+    const card = document.createElement('div');
+    card.className = 'section-card' + (allDone ? ' all-done' : '');
+
+    card.innerHTML =
+      '<div class="section-header" style="background:'+color+'" onclick="toggleSection(this)">' +
+        '<div class="section-left">' +
+          '<div class="section-icon"></div>' +
+          '<div class="section-title">'+cel.titre+'</div>' +
+        '</div>' +
+        '<div style="display:flex;align-items:center;gap:6px">' +
+          '<span class="section-pill'+(allDone?' done':'')+'">'+doneCount+'/'+cel.items.length+'</span>' +
+          '<span class="chevron">▾</span>' +
+        '</div>' +
+      '</div>' +
+      '<div class="items"></div>';
+
+    const itemsDiv = card.querySelector('.items');
+    cel.items.forEach((item, ii) => {
+      const key   = cel.id + '_' + ii;
+      const isChk = !!checks[pid][key];
+      const row   = document.createElement('div');
+      row.className = 'item' + (isChk ? ' checked' : '');
+      row.innerHTML =
+        '<div class="check-box">'+(isChk?'✓':'')+'</div>' +
+        '<div class="item-name">'+(item.n||'')+'</div>' +
+        (item.q ? '<div class="item-qty">×'+item.q+'</div>' : '');
+      row.onclick = () => toggleItem(idx, cel, ii);
+      itemsDiv.appendChild(row);
+    });
+
+    content.appendChild(card);
+  });
+  updateProgress(idx);
+}
+
+function toggleSection(header) {
+  header.closest('.section-card').classList.toggle('collapsed');
+}
+
+function toggleItem(pageIdx, cel, itemIdx) {
+  const pid = 'p' + pageIdx;
+  const key = cel.id + '_' + itemIdx;
+  checks[pid][key] = !checks[pid][key];
+  saveChecks();
+  renderPage(pageIdx);
+}
+
+function updateProgress(idx) {
+  const page = defaultPages[idx];
+  const pid  = 'p' + idx;
+  let total = 0, done = 0;
+  (page.cellules || []).forEach(cel => {
+    (cel.items || []).forEach((_,ii) => {
+      total++;
+      if (checks[pid] && checks[pid][cel.id+'_'+ii]) done++;
+    });
+  });
+  const pct = total > 0 ? Math.round(done/total*100) : 0;
+  document.getElementById('prog-fill').style.width = pct + '%';
+  document.getElementById('prog-text').textContent = done + ' / ' + total + ' articles';
+  document.getElementById('prog-pct').textContent  = pct + '%';
+}
+
+/* ── Reset ── */
+function resetCurrent() {
+  if (!confirm('Réinitialiser tous les articles de cet engin ?')) return;
+  checks['p'+currentPageIdx] = {};
+  saveChecks();
+  renderPage(currentPageIdx);
+}
+
+/* ── Validation ── */
+function validate() {
+  const page = defaultPages[currentPageIdx];
+  const pid  = 'p' + currentPageIdx;
+  let total = 0, done = 0;
+  const missingSections = {};
+
+  (page.cellules || []).forEach(cel => {
+    (cel.items || []).forEach((item, ii) => {
+      total++;
+      if (checks[pid] && checks[pid][cel.id+'_'+ii]) {
+        done++;
+      } else {
+        if (!missingSections[cel.titre]) missingSections[cel.titre] = [];
+        missingSections[cel.titre].push((item.n||'') + (item.q ? ' ×'+item.q : ''));
+      }
+    });
+  });
+
+  const missingCount = Object.values(missingSections).reduce((s,a) => s+a.length, 0);
+  const now = new Date().toLocaleString('fr-FR', {
+    weekday:'long', day:'numeric', month:'long', hour:'2-digit', minute:'2-digit'
+  });
+
+  document.getElementById('r-icon').textContent = missingCount === 0 ? '✅' : '⚠️';
+
+  const titleEl = document.getElementById('r-title');
+  if (missingCount === 0) {
+    titleEl.textContent = 'Vérification terminée, aucun problème détecté';
+    titleEl.className = 'result-title ok';
+    document.getElementById('r-sub').textContent = done+'/'+total+' articles vérifiés · '+page.nom;
+    document.getElementById('r-missing').style.display = 'none';
+    document.getElementById('r-consigne').style.display = 'none';
+  } else {
+    titleEl.textContent = 'Problème dans l\'inventaire';
+    titleEl.className = 'result-title ko';
+    document.getElementById('r-sub').textContent = missingCount+' article(s) non vérifié(s) sur '+total+' · '+page.nom;
+
+    let html = '';
+    Object.entries(missingSections).forEach(([sec, items]) => {
+      html += '<div class="miss-section">'+sec+'</div>';
+      items.forEach(item => {
+        html += '<div class="miss-item"><span style="font-size:9px;flex-shrink:0">●</span>'+item+'</div>';
+      });
+    });
+    document.getElementById('r-missing').innerHTML = html;
+    document.getElementById('r-missing').style.display = 'block';
+    document.getElementById('r-consigne').innerHTML =
+      '⚠️ <strong>Merci de mettre le matériel manquant dans le véhicule.</strong><br>' +
+      'Le cas échéant : <strong>le signaler au chef de garde.</strong>';
+    document.getElementById('r-consigne').style.display = 'block';
+  }
+
+  document.getElementById('r-time').textContent = now;
+  document.getElementById('result-modal').classList.add('open');
+}
+
+function closeResult() {
+  document.getElementById('result-modal').classList.remove('open');
+}
+function handleModalClick(e) {
+  if (e.target === document.getElementById('result-modal')) closeResult();
+}
+
+/* ── Deep link depuis QR code ── */
+function handleHash() {
+  const hash = decodeURIComponent(window.location.hash.replace('#',''));
+  if (hash) {
+    const idx = defaultPages.findIndex(p => p.nom === hash);
+    if (idx >= 0) switchTab(idx);
+  }
+}
+
+init();
+handleHash();
+window.addEventListener('hashchange', handleHash);
+</script>
+</body>
+</html>
